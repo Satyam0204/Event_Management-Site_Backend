@@ -14,3 +14,8 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
+
+class EventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Event
+        fields='__all__'

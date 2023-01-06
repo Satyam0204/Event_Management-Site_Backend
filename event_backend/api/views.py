@@ -7,23 +7,8 @@ from .serializers import *
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from rest_framework_simplejwt.views import TokenObtainPairView
+
 from rest_framework import status
-@api_view(['GET'])
-def viewRoutes(request):
-    routes=[
-            {
-            'endpoint':'viewRoutes',
-            'desc':'view all routes',
-
-            },
-    ]
-
-    return Response(routes)
-
-
-
 
 
 @api_view(['GET'])
@@ -37,6 +22,8 @@ def viewRoutes(request):
     ]
 
     return Response(routes)
+
+    
 class Register(APIView):
     @classmethod
     def post(self, request):
@@ -56,3 +43,23 @@ class Register(APIView):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def CreateEvent(request):
+    user=request.user
+    data=request.data
+    if(data['start_date']<=data['end_date']):
+        event=Event.objects.create(name=data['name'],desc=data['desc'],start_date=data['start_date'],end_date=data['end_date'],author=user)
+        serializers=EventSerializer(event,many=False)
+        return Response(serializers.data)
+    else:
+        raise ValueError("start date must be earlier than end date")
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getEvents(request):
+    events=Event.objects.all()
+    serializers=EventSerializer(events,many=True)
+    return Response(serializers.data)

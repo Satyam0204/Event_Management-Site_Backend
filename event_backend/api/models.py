@@ -45,3 +45,17 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class Event(models.Model):
+    name=models.CharField(max_length=500)
+    desc=models.TextField(max_length=500)
+    start_date=models.DateTimeField()
+    end_date=models.DateTimeField()
+    author=models.ForeignKey(User, on_delete=models.CASCADE)
+    image=models.ImageField(null=True,blank=True)
+    prizes = models.CharField(max_length=500,null=True,blank=True)
+
+    def __str__(self):
+        return self.name
+    
