@@ -6,6 +6,7 @@ from .models import *
 from .serializers import *
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.utils import timezone
 
 
 from rest_framework import status
@@ -50,7 +51,7 @@ def CreateEvent(request):
     user=request.user
     data=request.data
     if(data['start_date']<=data['end_date']):
-        event=Event.objects.create(name=data['name'],desc=data['desc'],start_date=data['start_date'],end_date=data['end_date'],author=user)
+        event=Event.objects.create(name=data['name'],desc=data['desc'],start_date=data['start_date'],end_date=data['end_date'],host=user)
         serializers=EventSerializer(event,many=False)
         return Response(serializers.data)
     else:
@@ -60,11 +61,28 @@ def CreateEvent(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getEvents(request):
+    time=timezone.now()
+    print(time)
+    upcomingevents=[]
+    liveevents=[]
+    pastevents=[]
     events=Event.objects.all()
+    for event in events:
+        if (time<event.start_date and time<event.end_date):
+            print(event.start_date)
+            upcomingevents.append(event)
 
-    serializers=EventSerializer(events,many=True)
+        elif(time>=event.start_date and time<event.end_date):
+            liveevents.union(event)
+        else:
+            pastevents.union(event)
+    upc_serializers=EventSerializer(upcomingevents,many=True)
 
-    return Response(serializers.data)
+    le_serializers=EventSerializer(liveevents,many=True)
+    pe_serializers=EventSerializer(pastevents,many=True)
+    response={"upcoming_events":upc_serializers.data,"live_events":le_serializers.data,"past_events":pe_serializers.data}
+    # print(response)
+    return Response(response)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -74,3 +92,16 @@ def getSpecificEvent(request,pk):
     response=serializers.data
     response['avg_rating']=event.avg_rating()
     return Response(response)
+
+@api_view(['POST','PUT'])
+@permission_classes([IsAuthenticated])
+def rate(request,pk):
+    event=Event.objects.get(id=pk)
+    user= request.user
+    data=request.data
+    if(not Rating.objects.filter(user=user,event=event).exists()):
+        Rating.objects.create(event=event,user=user,rating=data['rating'])
+        return Response("You rated "+event.name+" with rating "+data['rating'])
+    else:
+        Rating.objects.update(event=event,user=user,rating=data['rating'])
+        return Response("You updated rating "+event.name+" with rating "+data['rating'])
