@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.base_user import BaseUserManager
+from django.core.validators import MinValueValidator, MaxValueValidator
 # Create your models here.
 
 class UserManager(BaseUserManager):
@@ -58,4 +59,21 @@ class Event(models.Model):
 
     def __str__(self):
         return self.name
+
+    def avg_rating(self):
+        ratings=self.rating_set.all().values_list('rating')
+        total=0
+        for rating in ratings:
+            total+=rating[0]
+
+        avg=total//(len(ratings))
+        return avg
     
+
+class Rating(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    event=models.ForeignKey(Event,on_delete=models.CASCADE)
+    rating=models.IntegerField(validators=[MinValueValidator(0),MaxValueValidator(5)])
+
+    def __str__(self):
+        return self.user.email + ' for '+self.event.name

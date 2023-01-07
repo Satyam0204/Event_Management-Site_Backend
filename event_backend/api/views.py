@@ -61,5 +61,16 @@ def CreateEvent(request):
 @permission_classes([IsAuthenticated])
 def getEvents(request):
     events=Event.objects.all()
+
     serializers=EventSerializer(events,many=True)
+
     return Response(serializers.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def getSpecificEvent(request,pk):
+    event=Event.objects.get(id=pk)
+    serializers=EventSerializer(event)
+    response=serializers.data
+    response['avg_rating']=event.avg_rating()
+    return Response(response)
