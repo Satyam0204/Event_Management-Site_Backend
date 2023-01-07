@@ -65,9 +65,15 @@ class Event(models.Model):
         total=0
         for rating in ratings:
             total+=rating[0]
+        if(len(ratings)!=0):
+            avg=total//(len(ratings))
+            return avg
+        else:
+            return 0
 
-        avg=total//(len(ratings))
-        return avg
+    def interested_count(self):
+        interested_users=self.interest_set.filter(interest=True).count()
+        return (interested_users)
     
 
 class Rating(models.Model):
@@ -77,3 +83,13 @@ class Rating(models.Model):
 
     def __str__(self):
         return self.user.email + ' for '+self.event.name
+
+
+class Interest(models.Model):
+    user=models.ForeignKey(User,on_delete=models.CASCADE)
+    event=models.ForeignKey(Event,on_delete=models.CASCADE)
+    interest=models.BooleanField(default=True)
+    
+    def __str__(self):
+        return self.user.email +' interest in '+ self.event.name
+    

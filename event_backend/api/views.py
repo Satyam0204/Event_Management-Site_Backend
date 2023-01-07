@@ -73,9 +73,9 @@ def getEvents(request):
             upcomingevents.append(event)
 
         elif(time>=event.start_date and time<event.end_date):
-            liveevents.union(event)
+            liveevents.append(event)
         else:
-            pastevents.union(event)
+            pastevents.append(event)
     upc_serializers=EventSerializer(upcomingevents,many=True)
 
     le_serializers=EventSerializer(liveevents,many=True)
@@ -91,6 +91,7 @@ def getSpecificEvent(request,pk):
     serializers=EventSerializer(event)
     response=serializers.data
     response['avg_rating']=event.avg_rating()
+    response['total_interested_users']=event.interested_count()
     return Response(response)
 
 @api_view(['POST','PUT'])
@@ -105,3 +106,11 @@ def rate(request,pk):
     else:
         Rating.objects.update(event=event,user=user,rating=data['rating'])
         return Response("You updated rating "+event.name+" with rating "+data['rating'])
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def showInterest(request,pk):
+    event=Event.objects.get(id=pk)
+    user=request.user
+    Interest.objects.create(event=event,user=user)
+    return Response("You showed interest to"+event.name)

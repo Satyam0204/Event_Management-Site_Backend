@@ -4,3 +4,4 @@ from .models import *
 admin.site.register(User)
 admin.site.register(Event)
 admin.site.register(Rating)
+admin.site.register(Interest)

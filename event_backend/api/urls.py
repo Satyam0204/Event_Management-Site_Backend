@@ -15,4 +15,5 @@ urlpatterns = [
     path('getevents/',getEvents),
     path('getevent/<str:pk>/',getSpecificEvent),
     path('rateevent/<str:pk>/',rate),
+    path('showinterest/<str:pk>/',showInterest),
     ]
