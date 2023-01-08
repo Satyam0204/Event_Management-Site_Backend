@@ -16,10 +16,46 @@ from rest_framework import status
 def viewRoutes(request):
     routes=[
             {
-            'endpoint':'viewRoutes',
+            'endpoint':'/api/',
+            'method':'GET',
             'desc':'view all routes',
-
             },
+            {
+            'endpoint':'/api/register/',
+            'method':'POST',
+            'desc':'registerisng user'
+            },
+            {
+            'endpoint':'/api/login/',
+            'method':'POST',
+            'desc':'getthing jwt token'
+            },
+
+            {'endpoint':'/api/token/refresh/',
+            'method':'POST',
+            'desc':'refreshing access token using refresh token'},
+
+            {'endpoint':'/api/newevent/',
+            'method':'POST',
+            'desc':'creating new event with the authozised user'},
+
+            {'endpoint':'/api/getevents/',
+            'method':'GET',
+            'desc':'get all the past, live and upcoming events specified'},
+
+            {'endpoint':"/api/getevent/<id>",
+            'method':'GET',
+            'desc':'get a specific event with event.id=id with average rating and no of interested users'},
+
+            {'endpoint':"/api/rateevent/<id>",
+            'method':"['POST','PUT']",
+            'desc':'rate or update rating a specific event with event.id=id between 1 to 5'},
+
+            {'endpoint':"/api/showinterest/<id>",
+            'method':'POST',
+            'desc':'show interest to a specific event with event.id = id between 1 to 5'},
+
+
     ]
 
     return Response(routes)
@@ -58,6 +94,7 @@ def CreateEvent(request):
         raise ValueError("start date must be earlier than end date")
 
 
+#getting all the upcoming , live and upcoming events
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getEvents(request):
@@ -81,9 +118,10 @@ def getEvents(request):
     le_serializers=EventSerializer(liveevents,many=True)
     pe_serializers=EventSerializer(pastevents,many=True)
     response={"upcoming_events":upc_serializers.data,"live_events":le_serializers.data,"past_events":pe_serializers.data}
-    # print(response)
+
     return Response(response)
 
+#getthing specific event with id with avg rating and total interested users
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def getSpecificEvent(request,pk):
@@ -94,6 +132,7 @@ def getSpecificEvent(request,pk):
     response['total_interested_users']=event.interested_count()
     return Response(response)
 
+#rate the event
 @api_view(['POST','PUT'])
 @permission_classes([IsAuthenticated])
 def rate(request,pk):
@@ -107,6 +146,7 @@ def rate(request,pk):
         Rating.objects.update(event=event,user=user,rating=data['rating'])
         return Response("You updated rating "+event.name+" with rating "+data['rating'])
 
+#show interest to the event
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def showInterest(request,pk):
